@@ -9,7 +9,7 @@ En esta primera fase, hemos estructurado la base del frontend utilizando arquite
 
 ## 2. PILA TECNOLÓGICA (TECNOLOGÍAS Y SU PROPÓSITO)
 
-El desarrollo del proyecto se apoya en un ecosistema tecnológico diseñado para maximizar el rendimiento, la velocidad de desarrollo y la scalabilidad económica.
+El desarrollo del proyecto se apoya en un ecosistema tecnológico diseñado para maximizar el rendimiento, la velocidad de desarrollo y la escalabilidad económica.
 
 ### A. Node.js (Entorno de Ejecución)
 *   **Qué es y para qué sirve**: Node.js es el entorno de ejecución de JavaScript en el lado del servidor. En nuestro proyecto, no lo usamos para escribir un servidor web tradicional, sino como la infraestructura de desarrollo para gestionar dependencias (npm), ejecutar scripts de compilación, transcompilar TypeScript y levantar el servidor local de desarrollo.
@@ -41,7 +41,7 @@ El desarrollo del proyecto se apoya en un ecosistema tecnológico diseñado para
 
 ## 3. COMPONENTES Y CÓDIGO IMPLEMENTADO (.tsx)
 
-Hemos creado e intervenido en cinco archivos clave en la estructura de la aplicación. A continuación se detalla su funcionalidad y el propósito de su código.
+Hemos creado e intervenido en los siguientes archivos clave en la estructura de la aplicación.
 
 ### A. Proveedor de Autenticación Global: [AuthContext.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/context/AuthContext.tsx) [NUEVO]
 *   **Función**: Crea un contexto de React (`AuthContext`) y un hook personalizado (`useAuth()`) que lee y distribuye el estado de sesión de Puter.js a nivel global.
@@ -49,38 +49,20 @@ Hemos creado e intervenido en cinco archivos clave en la estructura de la aplica
     *   Gestiona los estados `user` e `isLoading` en un único proveedor de estado reactivo.
     *   Utiliza un `useEffect` que implementa un bucle de intervalo inteligente para esperar a que la librería global `window.puter` se cargue por completo desde el CDN, evitando errores de referencia nula.
     *   Encapsula las llamadas asíncronas de inicio de sesión (`puter.auth.signIn()`) y cierre de sesión (`puter.auth.signOut()`).
-    *   *Propósito*: Evitar consultas redundantes de sesión por parte de múltiples componentes y centralizar el flujo de control del usuario.
 
 ### B. Estructura Raíz: [root.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/root.tsx)
 *   **Función**: Define el esqueleto HTML inicial (`<html>`, `<head>`, `<body>`) y monta el layout base envolviendo a toda la aplicación en el proveedor global.
 *   **Detalles del código y uso**:
     *   Inyecta en la cabecera el script CDN: `<script src="https://js.puter.com/v2/"></script>`.
-    *   Envuelve el layout principal en `<AuthProvider>` para que el contexto esté disponible en todas las sub-rutas:
-        ```tsx
-        export default function App() {
-          return (
-            <AuthProvider>
-              <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-                <Navbar />
-                <main className="flex-grow">
-                  <Outlet />
-                </main>
-              </div>
-            </AuthProvider>
-          );
-        }
-        ```
-    *   *Propósito*: Inyectar la API de Puter y distribuir el estado del usuario de forma jerárquica a través del árbol de componentes de React Router.
+    *   Envuelve el layout principal en `<AuthProvider>` para que el contexto esté disponible en todas las sub-rutas.
 
 ### C. Botón Reutilizable Premium: [button.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/components/ui/button.tsx)
 *   **Función**: Proporciona un botón interactivo y consistente con micro-animaciones, estados dinámicos (carga/deshabilitado) y múltiples variantes de diseño.
 *   **Detalles del código y uso**:
-    *   Utiliza `React.forwardRef` para que pueda recibir referencias de React.
     *   Implementa un objeto de variantes de Tailwind CSS v4 para aplicar estilos visuales premium según las props:
         *   `primary`: Degradado de tres colores (`from-indigo-500 via-purple-500 to-pink-500`) con sombras difuminadas.
         *   `secondary`: Estilo glassmórfico semitransparente oscuro (`bg-slate-800/80 border border-slate-700/60`).
     *   Muestra un spinner SVG animado si se pasa la propiedad `isLoading = true`, bloqueando además clicks accidentales.
-    *   *Propósito*: Evitar la repetición de clases CSS complejas y asegurar que todos los botones de la web reaccionen de la misma manera a la interacción del usuario.
 
 ### D. Cabecera Interactiva: [Navbar.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/components/Navbar.tsx)
 *   **Función**: Ofrece la barra de navegación responsive que se fija en la parte superior, mostrando enlaces, el logo y la autenticación del usuario.
@@ -88,17 +70,16 @@ Hemos creado e intervenido en cinco archivos clave en la estructura de la aplica
     *   **Consumo Simplificado**: Consume el estado global con una línea: `const { user, isLoading: isCheckingAuth, signIn: handleSignIn, signOut } = useAuth();`.
     *   **Logotipo 3D**: Renderiza un isotipo de cubo/casa construido íntegramente con paths SVG y un gradiente de color personalizado.
     *   **Menú de Usuario**: Si el usuario está registrado, se renderiza un avatar circular con sus iniciales y un dropdown flotante con botón de cerrar sesión. Si está desconectado, muestra el botón de inicio de sesión llamando a `handleSignIn()`.
-    *   **Menú Móvil**: Usa un booleano `isMobileMenuOpen` para alternar un panel vertical colapsable mediante animaciones CSS de entrada.
-    *   *Propósito*: Proporcionar el acceso y controles a la aplicación de forma interactiva y adaptada a móviles.
 
-### E. Página de Demostración: [home.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/routes/home.tsx)
-*   **Función**: Define la página de destino principal que los usuarios ven al entrar al dominio raíz.
-*   **Detalles del código y uso**:
-    *   Configura los metadatos de título y descripción SEO para el motor de búsqueda.
-    *   Añade orbes de luz de fondo degradadas.
-    *   **Botón Central Inteligente**: Lee el estado de `useAuth()` para renderizar un skeleton durante la carga, el botón "Empezar Gratis" (llama a `signIn()`) si está desconectado, o el botón "Ir al Dashboard" si el usuario ya cuenta con sesión iniciada.
-    *   Contiene una cuadrícula de tres columnas con tarjetas de características del SaaS.
-    *   *Propósito*: Ofrecer un landing interactivo y dinámico que responda visualmente al inicio de sesión de los usuarios en tiempo real.
+### E. Página Principal e Interfaz del Generador: [home.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/routes/home.tsx)
+*   **Función**: Define el comportamiento dinámico del sitio. Si el usuario está desconectado, muestra la Landing Page de marketing; si ha iniciado sesión, renderiza el **Workspace de Generación 3D** completamente equipado.
+*   **Detalles del código y uso del Workspace**:
+    *   **Carga de plano (2D Upload)**: Zona drag & drop interactiva que previsualiza la imagen subida mediante un `FileReader()` en JavaScript.
+    *   **Selectores de Espacio y Estilo**: Permiten al usuario alternar entre 5 tipos de habitación y 5 estilos de diseño arquitectónico.
+    *   **Simulador Neuronal por Pasos**: Un motor síncrono con temporizadores simula la carga por fases de la IA mostrando mensajes informativos como *"Analizando geometría..."* o *"Construyendo modelo 3D isométrico..."* antes de revelar el render final.
+    *   **Base de datos de renders**: Contiene una colección indexada de 25 combinaciones de renders fotorealistas de alta definición (cruzando los estilos y tipos de espacio) que se muestran dinámicamente según la selección.
+    *   **Deslizador Comparativo (Before/After Slider)**: Un contenedor interactivo que calcula el movimiento horizontal del ratón (`clientX`) para dividir la pantalla con un recorte dinámico (`clipping`) que permite ver el plano 2D subido (izquierda) y el render 3D resultante (derecha) arrastrando un cursor central.
+    *   **Persistencia en la Nube con Puter KV**: Al finalizar la generación, el render se añade al historial inferior y se escribe en la base de datos distribuida de Puter mediante `await puter.kv.set(key, JSON.stringify(proyectos))`, permitiendo que el historial persista incluso al cambiar de navegador o refrescar la pantalla.
 
 ---
 
@@ -110,7 +91,6 @@ Durante la implementación inicial de la autenticación de Puter.js, realizamos 
 Originalmente, la barra de navegación ([Navbar.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/components/Navbar.tsx)) gestionaba el estado de sesión de manera aislada:
 *   Creaba un estado local `user` y un `isCheckingAuth`.
 *   Ejecutaba un `useEffect` que creaba un bucle con `setInterval` para comprobar periódicamente si `window.puter` existía en la ventana del navegador.
-*   Una vez cargada, llamaba a `puter.auth.isSignedIn()` y de ahí a `puter.auth.getUser()` para guardar el usuario localmente.
 *   **Problema principal**: Si otra sección de la página (por ejemplo, el botón central de la landing page o la futura ruta `/dashboard`) necesitaba saber si el usuario estaba logueado, se veía obligada a duplicar todo el código de verificación y el bucle intervalado. Además, si el usuario iniciaba sesión en el botón del cuerpo de la página, el Navbar no se enteraba del cambio de estado, causando desincronizaciones visuales.
 
 ### El Estado Final (Global mediante Context API)
@@ -131,7 +111,6 @@ Para implementar "las cosas bien hechas", creamos la siguiente estructura unific
         ```typescript
         const { user, isLoading: isCheckingAuth, signIn: handleSignIn, signOut } = useAuth();
         ```
-    *   Esto eliminó más de 50 líneas de lógica duplicada del Navbar, permitiendo que la interfaz siga funcionando exactamente igual pero alimentándose de un flujo global de datos.
 4.  **Botón Inteligente en [home.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/routes/home.tsx)**:
     *   Consumiendo el mismo hook `useAuth()`, el botón de llamada a la acción en la cabecera del cuerpo de la landing page responde ahora al estado en tiempo real de la sesión:
         *   Muestra un esqueleto gris animado mientras valida la sesión.
