@@ -22,13 +22,14 @@ export const links: Route.LinksFunction = () => [
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
 ];
-
+// Carga la API de Puter.js para autenticación y almacenamiento en la nube
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script src="https://js.puter.com/v2/"></script>
         <Meta />
         <Links />
       </head>
@@ -41,8 +42,23 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Importamos el Navbar premium diseñado para Roomifi
+import Navbar from "../components/Navbar";
+// Importamos el proveedor global de autenticación con Puter.js
+import { AuthProvider } from "./context/AuthContext";
+
 export default function App() {
-  return <Outlet />;
+  return (
+    <AuthProvider>
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+        {/* Navbar premium fijo en la parte superior */}
+        <Navbar />
+        <main className="flex-grow">
+          <Outlet />
+        </main>
+      </div>
+    </AuthProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
