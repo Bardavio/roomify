@@ -119,7 +119,37 @@ Para implementar "las cosas bien hechas", creamos la siguiente estructura unific
 
 ---
 
-## 5. REPRESENTACIÓN VISUAL EN LOCALHOST
+## 5. ANÁLISIS DE FUNCIONES CLAVE Y LÓGICA DE PROGRAMACIÓN (WORKSPACE)
+
+A continuación se resume el funcionamiento, ubicación y justificación de los 6 bloques lógicos principales programados en [home.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/routes/home.tsx):
+
+### A. Base de Datos de Simulación (`RENDERS_DATABASE`)
+*   **Qué hace y dónde está**: Es un objeto clave-valor definido al inicio del archivo (fuera del componente). Mapea 25 combinaciones de estilo decorativo y habitación a URLs de imágenes en alta resolución.
+*   **Por qué y para qué**: Permite realizar pruebas visuales inmediatas y gratuitas. En lugar de consumir APIs de pago en la fase de prototipo, asocia renders coherentes con la configuración del usuario con un coste de mantenimiento de 0€.
+
+### B. Enrutador Interno de Vistas (`Home` principal)
+*   **Qué hace y dónde está**: Al final de la función principal `Home()`. Utiliza un condicional ternario en React: `user ? <Workspace /> : <LandingPage />`.
+*   **Por qué y para qué**: Controla la transición de la aplicación de forma dinámica. En cuanto se valida la autenticación del usuario a través de Puter.js, la interfaz cambia al espacio de diseño de interiores automáticamente sin necesidad de recargar la página.
+
+### C. Persistencia en la Nube (`useEffect` + `loadProjects`)
+*   **Qué hace y dónde está**: Un hook de efecto al principio del componente `Workspace()`. Ejecuta la función asíncrona `loadProjects` al arrancar.
+*   **Por qué y para qué**: Recupera el historial de renders guardados del usuario. Utiliza `puter.kv.get()` con una clave única por usuario para sincronizar sus proyectos desde la base de datos cloud de Puter.js, utilizando `localStorage` como plan de respaldo si el usuario está desconectado.
+
+### D. Lectura de Ficheros y Drag & Drop (`FileReader` y manejadores)
+*   **Qué hace y dónde está**: Funciones `handleFileChange`, `handleDragOver` e `handleDrop` en el panel izquierdo.
+*   **Por qué y para qué**: Permite subir planos de planta 2D arrastrándolos o buscándolos. Transforma el archivo de imagen en un string codificado en Base64 mediante `readAsDataURL` para previsualizarlo de inmediato en el navegador sin consumir tráfico de subida a servidores.
+
+### E. Motor Simulador de IA (`handleGenerate` y retardos)
+*   **Qué hace y dónde está**: Función `handleGenerate()` en el controlador del botón de generación.
+*   **Por qué y para qué**: Ejecuta la barra de carga secuenciada por fases y escribe los resultados. Utiliza funciones `setTimeout` de JavaScript para actualizar periódicamente el estado `generationStep` y mostrar los mensajes correspondientes de cada fase (geometría, modelado, render) antes de subir el render final e insertarlo en Puter KV Cloud mediante `puter.kv.set()`.
+
+### F. Deslizador Comparativo (`handleMouseMove` y máscara CSS)
+*   **Qué hace y dónde está**: Función `handleMouseMove()` y estados `sliderPosition` e `isDraggingSlider` en el visor de imágenes derecho.
+*   **Por qué y para qué**: Genera la pantalla partida interactiva. Calcula la posición en porcentaje del cursor del ratón y aplica una máscara dinámica de CSS (`width: sliderPosition%`) a la imagen superior del plano 2D para revelar de forma fluida el render 3D colocado en la capa de fondo.
+
+---
+
+## 6. REPRESENTACIÓN VISUAL EN LOCALHOST
 A continuación se presenta un mockup visual del estado actual de la interfaz de la aplicación corriendo en localhost:
 
 *(Nota: En la versión alojada en GitHub, la imagen se cargará de manera local desde el repositorio).*
