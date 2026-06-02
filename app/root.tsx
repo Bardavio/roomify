@@ -50,7 +50,7 @@ import { AuthProvider } from "./context/AuthContext";
 export default function App() {
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      <div className="min-h-screen bg-[#e2e8f0] text-slate-900 flex flex-col">
         {/* Navbar premium fijo en la parte superior */}
         <Navbar />
         <main className="flex-grow">

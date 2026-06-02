@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { signIn as puterSignIn, signOut as puterSignOut, getUser as puterGetUser } from "../utils/puter.action";
 
 // Declaración del tipo de datos expuesto por el contexto de autenticación
 interface AuthContextType {
@@ -22,8 +23,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        if (window.puter && window.puter.auth.isSignedIn()) {
-          const puterUser = await window.puter.auth.getUser();
+        const puterUser = await puterGetUser();
+        if (puterUser) {
           setUser(puterUser);
         }
       } catch (error) {
@@ -50,8 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Función asíncrona global para iniciar sesión mediante popup
   const signIn = async () => {
     try {
-      if (window.puter) {
-        const puterUser = await window.puter.auth.signIn();
+      const puterUser = await puterSignIn();
+      if (puterUser) {
         setUser(puterUser);
       }
     } catch (error) {
@@ -61,10 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Función síncrona global para cerrar sesión y limpiar el estado
   const signOut = () => {
-    if (window.puter) {
-      window.puter.auth.signOut();
-      setUser(null);
-    }
+    puterSignOut();
+    setUser(null);
   };
 
   return (

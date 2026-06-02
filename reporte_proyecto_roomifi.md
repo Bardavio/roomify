@@ -74,12 +74,18 @@ Hemos creado e intervenido en los siguientes archivos clave en la estructura de 
 ### E. Página Principal e Interfaz del Generador: [home.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/routes/home.tsx)
 *   **Función**: Define el comportamiento dinámico del sitio. Si el usuario está desconectado, muestra la Landing Page de marketing; si ha iniciado sesión, renderiza el **Workspace de Generación 3D** completamente equipado.
 *   **Detalles del código y uso del Workspace**:
-    *   **Carga de plano (2D Upload)**: Zona drag & drop interactiva que previsualiza la imagen subida mediante un `FileReader()` en JavaScript.
-    *   **Selectores de Espacio y Estilo**: Permiten al usuario alternar entre 5 tipos de habitación y 5 estilos de diseño arquitectónico.
-    *   **Simulador Neuronal por Pasos**: Un motor síncrono con temporizadores simula la carga por fases de la IA mostrando mensajes informativos como *"Analizando geometría..."* o *"Construyendo modelo 3D isométrico..."* antes de revelar el render final.
-    *   **Base de datos de renders**: Contiene una colección indexada de 25 combinaciones de renders fotorealistas de alta definición (cruzando los estilos y tipos de espacio) que se muestran dinámicamente según la selección.
-    *   **Deslizador Comparativo (Before/After Slider)**: Un contenedor interactivo que calcula el movimiento horizontal del ratón (`clientX`) para dividir la pantalla con un recorte dinámico (`clipping`) que permite ver el plano 2D subido (izquierda) y el render 3D resultante (derecha) arrastrando un cursor central.
+    *   **Carga de plano (2D Upload)**: Zona drag & drop interactiva que previsualiza la imagen subida mediante un `FileReader()`. Además, incorpora un botón de carga rápida ("Usar plano de ejemplo") para probar inmediatamente la alineación pixel a pixel.
+    *   **Selectores de Espacio y Estilo**: Permiten al usuario alternar entre 6 tipos de espacio (incluyendo el modo principal de Apartamento Completo / Todo Junto que genera planos 2D texturizados, más los individuales de Salón, Dormitorio, Cocina, Baño y Oficina en 3D) y 5 estilos de diseño arquitectónico.
+    *   **Simulador Neuronal por Pasos**: Un motor síncrono con temporizadores simula la carga por fases de la IA mostrando mensajes informativos como *"Analizando geometría..."* o *"Construyendo modelo 3D..."* antes de revelar el render final.
+    *   **Base de datos de renders**: Contiene una colección indexada de 30 combinaciones de renders (las individuales a renders 3D de alta fidelidad, y el apartamento completo a un plano 2D renderizado con mobiliario a escala `/test-images/rendered_apartment.png` para alinearse perfectamente).
+    *   **Deslizador Comparativo (Before/After Slider)**: Un comparador interactivo que alinea perfectamente el plano original (izquierda) con el plano renderizado con texturas y mobiliario (derecha) mediante la propiedad CSS `clip-path` en un contenedor con ajuste `object-contain`, garantizando una superposición pixel a pixel responsiva sin desfases.
     *   **Persistencia en la Nube con Puter KV**: Al finalizar la generación, el render se añade al historial inferior y se escribe en la base de datos distribuida de Puter mediante `await puter.kv.set(key, JSON.stringify(proyectos))`, permitiendo que el historial persista incluso al cambiar de navegador o refrescar la pantalla.
+
+### F. Utilidad de Hosting de Imágenes en Subdominio: [puter.hosting.ts](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/utils/puter.hosting.ts) [NUEVO]
+*   **Función**: Gestiona la inicialización de un subdominio de hosting estático en Puter y controla la subida de imágenes a este espacio para obtener URLs públicas y permanentes.
+*   **Detalles del código y uso**:
+    *   `getOrInitializeSubdomain(username)`: Comprueba en el KV Store si el usuario tiene asignado un subdominio (ej: `roomifi_subdomain_bardavio`). Si no existe, genera uno aleatorio único (ej. `roomifi-bardavio-abcde`), crea el directorio físico `roomifi_site`, escribe un `index.html` de bienvenida para el sitio, registra el hosting con `puter.hosting.create()` y guarda la relación en Puter KV.
+    *   `uploadToPuterHosting(file, username)`: Llama a la inicialización del subdominio, guarda físicamente el archivo en `roomifi_site/[filename]` usando `puter.fs.write` y genera la URL estática limpia: `https://[subdominio].puter.site/[filename]`.
 
 ---
 
@@ -91,7 +97,7 @@ Durante la implementación inicial de la autenticación de Puter.js, realizamos 
 Originalmente, la barra de navegación ([Navbar.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/components/Navbar.tsx)) gestionaba el estado de sesión de manera aislada:
 *   Creaba un estado local `user` y un `isCheckingAuth`.
 *   Ejecutaba un `useEffect` que creaba un bucle con `setInterval` para comprobar periódicamente si `window.puter` existía en la ventana del navegador.
-*   **Problema principal**: Si otra sección de la página (por ejemplo, el botón central de la landing page o la futura ruta `/dashboard`) necesitaba saber si el usuario estaba logueado, se veía obligada a duplicar todo el código de verificación y el bucle intervalado. Además, si el usuario iniciaba sesión en el botón del cuerpo de la página, el Navbar no se enteraba del cambio de estado, causando desincronizaciones visuales.
+*   **Problema principal**: Si otra sección de la página (por ejemplo, el botón central de la landing page o la futura ruta `/dashboard`) necesitaba saber si el usuario estaba logueado, se veía obligada a duplicar todo el código de verificación y el bucle intervalado. Además, si el usuario iniciará sesión en el botón del cuerpo de la página, el Navbar no se enteraba del cambio de estado, causando desincronizaciones visuales.
 
 ### El Estado Final (Global mediante Context API)
 Para implementar "las cosas bien hechas", creamos la siguiente estructura unificada:
@@ -124,32 +130,31 @@ Para implementar "las cosas bien hechas", creamos la siguiente estructura unific
 A continuación se resume el funcionamiento, ubicación y justificación de los 6 bloques lógicos principales programados en [home.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/routes/home.tsx):
 
 ### A. Base de Datos de Simulación (`RENDERS_DATABASE`)
-*   **Qué hace y dónde está**: Es un objeto clave-valor definido al inicio del archivo (fuera del componente). Mapea 25 combinaciones de estilo decorativo y habitación a URLs de imágenes en alta resolución.
-*   **Por qué y para qué**: Permite realizar pruebas visuales inmediatas y gratuitas. En lugar de consumir APIs de pago en la fase de prototipo, asocia renders coherentes con la configuración del usuario con un coste de mantenimiento de 0€.
+*   **Qué hace y dónde está**: Es un objeto clave-valor definido al inicio del archivo (fuera del componente). Mapea 30 combinaciones de estilo decorativo y tipo de espacio a URLs de imágenes. En el caso del Apartamento Completo, apunta al archivo `/test-images/rendered_apartment.png` para alinearse pixel a pixel con el plano técnico.
+*   **Por qué y para qué**: Permite realizar pruebas visuales inmediatas y gratuitas. En lugar de consumir APIs de pago en la fase de prototipo, asocia renders coherentes con la configuración del usuario (soportando tanto habitaciones individuales en 3D como apartamentos renderizados bidimensionales completos con muebles alineados) con un coste de mantenimiento de 0€.
 
 ### B. Enrutador Interno de Vistas (`Home` principal)
 *   **Qué hace y dónde está**: Al final de la función principal `Home()`. Utiliza un condicional ternario en React: `user ? <Workspace /> : <LandingPage />`.
-*   **Por qué y para qué**: Controla la transición de la aplicación de forma dinámica. En cuanto se valida la autenticación del usuario a través de Puter.js, la interfaz cambia al espacio de diseño de interiores automáticamente sin necesidad de recargar la página.
-
-### C. Persistencia en la Nube (`useEffect` + `loadProjects`)
+*   **Por qué y para qué**: Controla la transición de la aplicación de forma dinámica. E### C. Persistencia en la Nube (`useEffect` + `loadProjects`)
 *   **Qué hace y dónde está**: Un hook de efecto al principio del componente `Workspace()`. Ejecuta la función asíncrona `loadProjects` al arrancar.
-*   **Por qué y para qué**: Recupera el historial de renders guardados del usuario. Utiliza `puter.kv.get()` con una clave única por usuario para sincronizar sus proyectos desde la base de datos cloud de Puter.js, utilizando `localStorage` como plan de respaldo si el usuario está desconectado.
+*   **Por qué y para qué**: Recupera el historial de renders guardados del usuario. Utiliza `puter.kv.get()` con una clave única por usuario para sincronizar sus proyectos desde la base de datos cloud de Puter.js, utilizando `localStorage` como plan de respaldo si la conexión con los servidores de Puter.js falla.
 
-### D. Lectura de Ficheros y Drag & Drop (`FileReader` y manejadores)
-*   **Qué hace y dónde está**: Funciones `handleFileChange`, `handleDragOver` e `handleDrop` en el panel izquierdo.
-*   **Por qué y para qué**: Permite subir planos de planta 2D arrastrándolos o buscándolos. Transforma el archivo de imagen en un string codificado en Base64 mediante `readAsDataURL` para previsualizarlo de inmediato en el navegador sin consumir tráfico de subida a servidores.
+### D. Subida de Archivos y Hosting Estático (`puter.hosting` y manejadores)
+*   **Qué hace y dónde está**: Función `handleUpload` en [home.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/routes/home.tsx) e integración con el módulo [puter.hosting.ts](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/utils/puter.hosting.ts).
+*   **Por qué y para qué**: Sube de manera segura el plano cargado al directorio de hosting del usuario (`roomifi_site/[filename]`) en el sistema de archivos de Puter. Retorna una URL pública estática y permanente con un formato premium bajo un subdominio único (`https://[subdominio].puter.site/[filename]`) en lugar de URLs temporales largas generadas por `getReadURL`. Si ocurre algún fallo de red, se activa el fallback local usando `FileReader` en Base64.
 
 ### E. Motor Simulador de IA (`handleGenerate` y retardos)
 *   **Qué hace y dónde está**: Función `handleGenerate()` en el controlador del botón de generación.
 *   **Por qué y para qué**: Ejecuta la barra de carga secuenciada por fases y escribe los resultados. Utiliza funciones `setTimeout` de JavaScript para actualizar periódicamente el estado `generationStep` y mostrar los mensajes correspondientes de cada fase (geometría, modelado, render) antes de subir el render final e insertarlo en Puter KV Cloud mediante `puter.kv.set()`.
 
-### F. Deslizador Comparativo (`handleMouseMove` y máscara CSS)
-*   **Qué hace y dónde está**: Función `handleMouseMove()` y estados `sliderPosition` e `isDraggingSlider` en el visor de imágenes derecho.
-*   **Por qué y para qué**: Genera la pantalla partida interactiva. Calcula la posición en porcentaje del cursor del ratón y aplica una máscara dinámica de CSS (`width: sliderPosition%`) a la imagen superior del plano 2D para revelar de forma fluida el render 3D colocado en la capa de fondo.
+### F. Deslizador Comparativo (`handleMouseMove` y clip-path CSS)
+*   **Qué hace y dónde está**: Función `handleMouseMove()`, estados `sliderPosition` e `isDraggingSlider` en el visor de imágenes derecho.
+*   **Por qué y para qué**: Genera la pantalla partida interactiva. Utiliza la propiedad CSS `clip-path: polygon(...)` sobre dos imágenes de idénticas proporciones y visualización (`object-contain`). Esto garantiza que al arrastrar el slider, el plano técnico en blanco y negro de la izquierda se convierta perfectamente alineado en el plano renderizado a color de la derecha, sin deformaciones ni desfases. Además, aplica un mapeo de filtros (`STYLE_FILTERS`) como `saturate` o `hue-rotate` sobre el plano renderizado para simular dinámicamente diferentes acabados de estilo respetando la alineación exacta.
 
 ---
 
 ## 6. REPRESENTACIÓN VISUAL EN LOCALHOST
+
 A continuación se presenta un mockup visual del estado actual de la interfaz de la aplicación corriendo en localhost:
 
 *(Nota: En la versión alojada en GitHub, la imagen se cargará de manera local desde el repositorio).*
@@ -168,3 +173,84 @@ La siguiente tabla describe qué archivo de código fuente controla y renderiza 
 | **Título y Subtítulo Central** | [home.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/routes/home.tsx) | El texto de llamada a la acción y el gradiente de texto ("2D en Renders 3D"). |
 | **Botones de Acción Centrales** | [button.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/components/ui/button.tsx) | Implementan el componente reutilizable en sus variantes `primary` y `secondary`. |
 | **Cuadrícula de Tarjetas de Características** | [home.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/routes/home.tsx) | Tarjetas con bordes sutiles que explican la funcionalidad general del SaaS. |
+
+---
+
+## 7. SISTEMA DE RESILIENCIA Y SOLUCIÓN DE CONFLICTOS EN CAPAS/EVENTOS
+
+Durante las fases de integración y pruebas en navegadores Chrome locales, depuramos y resolvimos varios bugs críticos de comunicación con el SDK y visualización en el viewport del cliente.
+
+### A. Firma del SDK de Puter.js (`getReadURL`)
+*   **Problema**: Al intentar obtener la URL de lectura pública tras subir la imagen al FileSystem de Puter, la aplicación enviaba el objeto de retorno `fileObj` completo. Esto provocaba que el SDK intentara evaluar la ruta literal `"[object Object]"` en lugar de la dirección real en disco, lo que rompía la imagen de previsualización.
+*   **Solución**: Modificamos el parámetro enviado a `puter.fs.getReadURL(fileObj.path || fileObj)`, extrayendo de forma explícita el string del path virtual, garantizando así la correcta resolución de la URL de lectura del plano de planta.
+
+### B. Tolerancia a Fallos de Red y WebSockets
+*   **Problema**: En entornos locales, los bloqueadores de anuncios (ej. Brave Shields, AdBlock), firewalls o restricciones de red académica a menudo bloquean las conexiones por WebSocket (`wss://api.puter.com/...`). Esto arrojaba errores en la consola y congelaba el guardado de proyectos al bloquear las promesas de las llamadas de base de datos distribuidas.
+*   **Solución**: 
+    1.  **Carga de Imágenes**: Diseñamos un flujo `try-catch` robusto. Si la conexión de Puter está bloqueada, la promesa de `puter.fs.write` es rechazada y el sistema deriva la carga al lector Base64 `fallbackLocalPreview` sin interrumpir la experiencia.
+    2.  **Persistencia KV**: Agregamos controladores `catch` en las promesas de `puter.kv.get` y `puter.kv.set`. Si la conexión en la nube falla, los datos del historial de renders se leen y escriben automáticamente en el **`localStorage`** del navegador del usuario.
+    3.  **Indicador en UI**: Creamos una etiqueta dinámica flotante (`Local` vs `Nube`) en la tarjeta de carga mediante análisis de strings de `filePreview` (comprobando cabeceras `data:`, `blob:` o `/test-images/`), dando feedback visual inmediato del estado de la sincronización en nube.
+
+### C. Superposición en el Canvas e Interferencia en Arrastres (Chrome z-index bug)
+*   **Problema**: Al renderizar el dormitorio 3D isométrico, navegadores WebKit/Blink (como Chrome) creaban un **contexto de apilamiento (stacking context) independiente** debido a estilos dinámicos (filtros de CSS). Como consecuencia, la imagen del dormitorio 3D de la derecha tapaba por completo a la imagen del plano 2D de la izquierda, impidiendo el funcionamiento visual del slider antes/después. Además, al pulsar y arrastrar con el mouse, el navegador desencadenaba su acción por defecto de "arrastre de archivos de imagen", congelando los eventos de movimiento del slider en React. Finalmente, debido a diferencias en las relaciones de aspecto de las imágenes, el render 3D de la derecha sobresalía por los bordes laterales del plano 2D de la izquierda, mostrándose por debajo del fondo en áreas que no le correspondían.
+*   **Solución**:
+    1.  **z-index explícitos**: Asignamos z-index específicos a las capas del visor en `home.tsx` (`z-0` para el render final, `z-10` para el plano 2D original del clipping, `z-20` para la línea/pomo divisor y `z-30` para las etiquetas de estado), garantizando que las imágenes se organicen de forma correcta independientemente de los filtros aplicados.
+    2.  **Doble clip-path**: Aplicamos `clip-path` en ambas imágenes simultáneamente. La imagen del plano 2D de la izquierda se delimita de `0` a `sliderPosition`%, y la imagen del render 3D de la derecha se delimita de `sliderPosition`% a `100`%. Esto crea una separación física absoluta en la pantalla, evitando que la imagen 3D de fondo sea visible en el lado de la imagen 2D original debido a diferencias de aspecto.
+    3.  **Prevención de arrastre por defecto**: Inyectamos `e.preventDefault()` en el evento `onMouseDown` del contenedor. Esto anula el comportamiento nativo de arrastre de ficheros del navegador, liberando la interacción para que el movimiento del mouse sea 100% fluido y responda al instante en cualquier navegador.
+    4.  **Soporte de Gestos Táctiles**: Agregamos manejadores táctiles (`onTouchStart`, `onTouchMove`, `onTouchEnd`) para replicar de forma nativa el deslizamiento comparador en dispositivos móviles y tablets.
+
+---
+
+## 8. CAPA DE SERVICIO CENTRALIZADA Y GALERÍA PREMIUM (FASE II)
+
+En esta fase de evolución del proyecto, estructuramos e implementamos la funcionalidad de creación de proyectos, almacenamiento de planos y renders de forma estática en Puter Hosting, y rediseñamos la galería bajo estándares premium.
+
+### A. Capa de Servicios Modulados: `puter.action.ts`
+*   **Motivación**: En sintonía con la arquitectura limpia expuesta en el proyecto del video, extrajimos toda la lógica de interacción con las APIs del SDK de Puter.js del contexto y las páginas.
+*   **Implementación**: Creamos `app/utils/puter.action.ts` para encapsular las llamadas de autenticación (`signIn`, `signOut`, `getUser`) y de proyectos (`getProjects`, `createProject`).
+*   **Lógica de Subida y Hosting**: La función `createProject` se encarga de:
+    1.  Obtener el subdominio único de Puter del usuario.
+    2.  Comprobar si las imágenes asociadas al proyecto (plano original y render) ya están en el hosting de Puter. Si son locales (como imágenes cargadas en memoria o Base64), las lee, las convierte a blobs y las escribe físicamente en el directorio del hosting público (`roomifi_site/projects/[id]/[original/render].png`) mediante `puter.fs.write`.
+    3.  Actualizar el Key-Value store de Puter (`roomifi_projects_[username]`) con las URLs públicas permanentes de las fotos (`https://[subdominio].puter.site/projects/...`) y el resto de los metadatos.
+
+### B. Galería "Project Manhattan" con Hover Cross-Fade e Interactividad Activa
+*   **Estilo Visual**: Implementamos una rejilla de tarjetas al estilo del video con el título descriptivo en tono tierra/naranja, badges de visibilidad ("Community") y metadatos de autor.
+*   **Hover Cross-Fade**: Para lograr una experiencia "Wow", agregamos una transición por hover en la tarjeta. Al pasar el cursor por encima del render final, este disminuye su opacidad de manera suave (`transition-opacity duration-500`) mientras se revela el plano técnico 2D original que se encuentra por debajo, mostrando de forma directa la transformación.
+*   **Diapositivas Reactivas**: Integramos dos líneas indicadoras en la base de la tarjeta que cambian su opacidad simulando el cambio de diapositiva (Original vs. Render) conforme el usuario interactúa.
+*   **Acción de Carga Dinámica**: Al hacer clic sobre cualquier tarjeta de proyecto, el sistema extrae las imágenes y parámetros guardados (estilo, tipo de espacio, prompt), los carga de forma inmediata en el Workspace del visor Before/After principal de la parte superior, y desplaza la pantalla suavemente (`window.scrollTo({ top: 0, behavior: "smooth" })`) para que el usuario pueda volver a interactuar con el slider completo del proyecto cargado.
+
+---
+
+## 9. REDISEÑO VISUAL (TEMA LIGHT MODE PREMIUM CON GRIS CEMENTO) Y OPTIMIZACIÓN DE UX
+
+Para la versión de producción final, dejamos de lado el tema oscuro original de colores índigo/morado y lo reemplazamos por el **Tema Light Mode Premium**. Este enfoque está inspirado en el diseño editorial y de estudios de arquitectura modernos, que priorizan la sobriedad, la elegancia, y el alto contraste para resaltar el contenido visual (planos y renders).
+
+### A. Paleta de Colores Gris Concreto y Contraste de Capas
+*   **Fondo Base de la Aplicación**: Establecido globalmente en un gris concreto claro (`bg-[#e2e8f0]`) en el cuerpo del documento ([app.css](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/app.css) y [root.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/root.tsx)). Esto evita la fatiga visual provocada por los fondos blancos puros brillantes y le otorga una identidad matérica sólida a la web.
+*   **Efecto Degradado de la Página**: En [home.tsx](file:///c:/Users/SERGIO/OneDrive%20-%20Universidad%20de%20Alcala/Escritorio/Proyectos/Roomifi/roomifi/app/routes/home.tsx) implementamos un degradado suave de `from-[#e2e8f0] via-[#cbd5e1] to-[#cbd5e1]` combinado con luces ambientales tenues en tonos cian y ámbar (`bg-cyan-500/[0.04]` y `bg-amber-500/[0.04]`).
+*   **Contraste de Tarjetas**: Todos los paneles de configuración, carga de planos y visor del render se estructuraron con fondos blancos puros (`bg-white`), bordes grises ultrafinos (`border-slate-200`) y sombras de elevación difusas (`shadow-sm`). Al colocarse sobre el fondo gris concreto, las tarjetas flotan visualmente con una definición excelente y un aspecto editorial limpio.
+
+### B. Limpieza de Interfaz y Enlaces "Muertos"
+Una interfaz premium no debe contener elementos distractores ni botones sin funcionalidad real. Realizamos una depuración profunda del flujo de navegación:
+*   **Barra de Navegación**: Eliminamos los enlaces "Explorar" y "Dashboard" del Navbar tanto para ordenadores como para dispositivos móviles, dejando una navegación minimalista centrada en el flujo del usuario (Botón de Inicio/Logotipo, enlace "Inicio" y Botón de Sesión).
+*   **Llamadas a la Acción en Landing**: Quitamos el botón "Explorar Renders" secundario de la landing page. Al simplificar la interfaz, reducimos la fricción cognitiva del usuario, canalizando toda la atención hacia el botón principal "Empezar Gratis" para iniciar sesión con Puter.js de manera directa.
+
+---
+
+## 10. VALIDACIÓN TÉCNICA, SEGURIDAD Y TRABAJO FUTURO
+
+### A. Compilación y Calidad del Código (Typecheck & Build)
+La aplicación ha sido validada bajo estrictos estándares de tipado de TypeScript y empaquetamiento con Vite:
+1.  **TypeScript (`npm run typecheck`)**: Compila sin advertencias ni errores en el código fuente, asegurando contratos estrictos entre los datos de Puter y las props de los componentes React.
+2.  **Producción (`npm run build`)**: El compilador de React Router genera los chunks del cliente y servidor en menos de 2 segundos, optimizando el CSS global de Tailwind CSS y empaquetando el código en archivos ultra-ligeros con minificación integrada.
+
+### B. Ventajas del Modelo Serverless de Puter.js
+*   **Coste Cero de Servidores**: No existe base de datos centralizada de proyectos, lo que elimina la necesidad de cumplir con normativas de protección de datos (RGPD) en nuestros servidores y reduce a cero el mantenimiento del backend.
+*   **Seguridad**: Las peticiones de IA y almacenamiento se realizan en el sandbox de Puter.js de cada usuario conectado, por lo que el desarrollador no tiene que almacenar credenciales de OpenAI, Anthropic o estabilidad localmente ni exponerlas en el frontend.
+
+### C. Trabajo Futuro y Siguientes Fases
+*   **Conversor Vectorial a 3D**: Integrar algoritmos que interpreten líneas vectoriales de archivos CAD (.dwg / .dxf) directamente en el navegador.
+*   **Renderizado Colaborativo**: Permitir salas en tiempo real usando los WebSockets integrados de Puter.js para que múltiples arquitectos editen materiales y comenten en vivo sobre el renderizado Before/After.
+*   **Modelos de IA Especializados**: Implementar selectores de iluminación para renderizar interiores bajo condiciones atmosféricas específicas (noche lluviosa, día soleado, luz invernal).
+
+

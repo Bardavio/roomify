@@ -12,14 +12,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = "", variant = "primary", size = "md", isLoading, children, disabled, ...props }, ref) => {
     
     // Clases base para centrado, tipografía, transición suave y efecto de click
-    const baseStyles = "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-indigo-500/50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none";
+    const baseStyles = "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-cyan-500/50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none";
 
     // Variaciones de diseño premium del botón (gradientes, glassmorphism y brillos)
     const variants = {
-      primary: "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:brightness-110",
-      secondary: "bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 text-slate-100 backdrop-blur-sm",
-      outline: "border-2 border-indigo-500/50 bg-transparent text-indigo-400 hover:bg-indigo-500/10 hover:border-indigo-500",
-      ghost: "text-slate-400 hover:text-white hover:bg-slate-800/50",
+      primary: "bg-gradient-to-r from-cyan-500 via-sky-400 to-amber-500 text-white shadow-md shadow-cyan-500/10 hover:shadow-cyan-500/30 hover:brightness-105 font-bold",
+      secondary: "bg-slate-100 hover:bg-slate-200 border border-slate-200/80 text-slate-700 hover:text-slate-900 transition-colors",
+      outline: "border-2 border-cyan-500 bg-transparent text-cyan-600 hover:bg-cyan-50 hover:border-cyan-600 hover:text-cyan-700",
+      ghost: "text-cyan-600 hover:text-cyan-700 hover:bg-slate-100",
     };
 
     // Tamaños del botón para diferentes contextos de pantalla
