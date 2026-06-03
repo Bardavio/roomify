@@ -8,8 +8,7 @@ import type { Project } from "../utils/puter.action";
 import { generateDesign } from "../utils/ia.action";
 import { ReactCompareSlider, ReactCompareSliderImage } from "react-compare-slider";
 
-// Base de datos de renders de alta fidelidad para el simulador de IA (25 combinaciones)
-// Base de datos de renders de alta fidelidad para el simulador de IA (30 combinaciones)
+// Base de datos de renders de alta fidelidad para el simulador de IA
 const RENDERS_DATABASE: Record<string, string> = {
   // Se configuran renders 2D alineados del apartamento completo cargado localmente
   "modern_entire_floor_plan": "/test-images/rendered_apartment.png",
@@ -17,36 +16,6 @@ const RENDERS_DATABASE: Record<string, string> = {
   "scandinavian_entire_floor_plan": "/test-images/rendered_apartment.png",
   "industrial_entire_floor_plan": "/test-images/rendered_apartment.png",
   "boho_entire_floor_plan": "/test-images/rendered_apartment.png",
-
-  "modern_living_room": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80",
-  "modern_bedroom": "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1200&q=80",
-  "modern_kitchen": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80",
-  "modern_bathroom": "https://images.unsplash.com/photo-1620626011161-997c51447094?auto=format&fit=crop&w=1200&q=80",
-  "modern_office": "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80",
-
-  "minimalist_living_room": "https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=1200&q=80",
-  "minimalist_bedroom": "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=1200&q=80",
-  "minimalist_kitchen": "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=1200&q=80",
-  "minimalist_bathroom": "https://images.unsplash.com/photo-1600566752229-2751565c9276?auto=format&fit=crop&w=1200&q=80",
-  "minimalist_office": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
-
-  "scandinavian_living_room": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1200&q=80",
-  "scandinavian_bedroom": "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1200&q=80",
-  "scandinavian_kitchen": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-  "scandinavian_bathroom": "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80",
-  "scandinavian_office": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80",
-
-  "industrial_living_room": "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80",
-  "industrial_bedroom": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
-  "industrial_kitchen": "https://images.unsplash.com/photo-1539922980492-38b66729f988?auto=format&fit=crop&w=1200&q=80",
-  "industrial_bathroom": "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=1200&q=80",
-  "industrial_office": "https://images.unsplash.com/photo-1517502884422-41eaaced0168?auto=format&fit=crop&w=1200&q=80",
-
-  "boho_living_room": "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80",
-  "boho_bedroom": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1200&q=80",
-  "boho_kitchen": "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?auto=format&fit=crop&w=1200&q=80",
-  "boho_bathroom": "https://images.unsplash.com/photo-1564540574859-0dfb63985953?auto=format&fit=crop&w=1200&q=80",
-  "boho_office": "https://images.unsplash.com/photo-1531971589569-0d93700fd00f?auto=format&fit=crop&w=1200&q=80",
 };
 
 // Opciones globales de tipo de espacio para el configurador (habitación de apartamento)
