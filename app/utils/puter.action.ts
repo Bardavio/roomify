@@ -232,7 +232,13 @@ export async function createProject(
   return newProject;
 }
 
-// Helpers de conversión
+/**
+ * Convierte una cadena de texto en formato Data URL (Base64) en un objeto Blob binario.
+ * Es crucial para preparar imágenes en Base64 y poder subirlas físicamente usando Puter FileSystem.
+ * 
+ * @param dataURL Cadena de texto en formato Data URL (ej. "data:image/png;base64,iVBOR...").
+ * @returns El objeto Blob resultante, o null si el formato no es válido o falla la conversión.
+ */
 function dataURLToBlob(dataURL: string): Blob | null {
   try {
     const parts = dataURL.split(",");
@@ -247,22 +253,36 @@ function dataURLToBlob(dataURL: string): Blob | null {
     }
     return new Blob([u8arr], { type: mime });
   } catch (e) {
-    console.error("Error converting data URL to Blob:", e);
+    console.error("Error al convertir Data URL a Blob:", e);
     return null;
   }
 }
 
+/**
+ * Descarga una imagen desde una URL remota y la retorna convertida en un objeto Blob binario.
+ * Utilizado cuando necesitamos descargar de la red imágenes temporales o externas para guardarlas en Puter FS.
+ * 
+ * @param url Enlace HTTP/HTTPS de la imagen a descargar.
+ * @returns Promesa que resuelve en un Blob, o null si falla la petición de descarga.
+ */
 async function fetchURLToBlob(url: string): Promise<Blob | null> {
   try {
     const res = await fetch(url);
     if (!res.ok) return null;
     return await res.blob();
   } catch (e) {
-    console.error("Error fetching URL to Blob:", e);
+    console.error("Error al descargar URL remota a Blob:", e);
     return null;
   }
 }
 
+/**
+ * Retorna la extensión de archivo estándar correspondiente a partir de un tipo MIME de imagen.
+ * 
+ * @param mime Tipo MIME de la imagen (ej: "image/png").
+ * @param defaultExt Extensión de respaldo si no coincide con los formatos conocidos (por defecto "png").
+ * @returns Extensión de archivo correspondiente sin punto (ej. "png", "jpg", "webp").
+ */
 function getExtensionFromMime(mime: string, defaultExt: string = "png"): string {
   if (mime.includes("png")) return "png";
   if (mime.includes("jpeg") || mime.includes("jpg")) return "jpg";

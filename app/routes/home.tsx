@@ -71,6 +71,13 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+/**
+ * Componente principal de la ruta Home ("/").
+ * Actúa como enrutador y controlador de estado:
+ * - Si el estado de sesión está cargando, dibuja un spinner de carga centrado.
+ * - Si el usuario ya está autenticado, renderiza el componente del Workspace.
+ * - Si el usuario está desconectado, renderiza la Landing Page comercial.
+ */
 export default function Home() {
   // Consumimos el contexto global de autenticación
   const { user, signIn, isLoading } = useAuth();
@@ -99,6 +106,12 @@ export default function Home() {
 // ==========================================
 // COMPONENTE: LANDING PAGE (USUARIOS LOGOUT)
 // ==========================================
+/**
+ * Componente de la Landing Page que se presenta a los usuarios que visitan Roomifi sin iniciar sesión.
+ * Ofrece la propuesta de valor del SaaS, características clave y botón para abrir el popup de login de Puter.
+ * 
+ * @param onSignIn Función callback del botón central para iniciar el diálogo de autenticación.
+ */
 function LandingPage({ onSignIn }: { onSignIn: () => void }) {
   return (
     <div className="mx-auto max-w-7xl px-4 pt-24 pb-20 sm:px-6 lg:px-8 text-center flex-grow">
@@ -168,34 +181,42 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
 // ==========================================
 // COMPONENTE: WORKSPACE PANEL (LOGIN SUCCESS)
 // ==========================================
+/**
+ * Componente Workspace.
+ * Representa el panel interactivo privado principal al que acceden los usuarios logueados.
+ * Permite subir planos 2D, seleccionar estilos, configurar prompts de detalle, generar renders
+ * mediante Puter AI e interactuar con el visor comparativo.
+ * 
+ * @param user Objeto del usuario autenticado en la sesión actual.
+ */
 function Workspace({ user }: { user: any }) {
-  // Estado para la previsualización del archivo 2D subido
+  // Estado para la previsualización del plano de entrada
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  // Estado de carga para controlar la subida a la nube de Puter
+  // Bandera de carga durante la subida al FileSystem de Puter
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  // Se establece apartamento completo como tipo de espacio predeterminado
+  // Tipo de espacio seleccionado (inicializado en Apartamento Completo)
   const [roomType, setRoomType] = useState<string>("entire_floor_plan");
-  // Estado para el estilo arquitectónico
+  // Estilo de diseño arquitectónico (ej: Moderno, Bohemio)
   const [designStyle, setDesignStyle] = useState<string>("modern");
-  // Estado para el prompt complementario del usuario
+  // Prompt con detalles adicionales opcionales escritos por el usuario
   const [additionalPrompt, setAdditionalPrompt] = useState<string>("");
-  // Estado para la barra de progreso de IA
+  // Bandera de carga activa durante el renderizado por la IA
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  // Paso actual de la generación de la IA (0, 1, 2, 3)
+  // Paso de carga neuronal actual (0 a 3) para la barra de progreso
   const [generationStep, setGenerationStep] = useState<number>(0);
-  // URL del render resultante generado
+  // Enlace URL del render 3D resultante retornado
   const [renderResult, setRenderResult] = useState<string | null>(null);
-  // Listado de proyectos (historial) del usuario
+  // Lista histórica de proyectos guardados por el usuario
   const [projects, setProjects] = useState<any[]>([]);
-  // Mensajes de error del panel
+  // Mensaje de alerta/error en rojo del formulario
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  // Estado para saber si estamos usando el simulador local (en caso de que Puter AI falle)
+  // Bandera que indica si el render visualizado es simulado offline debido a fallo de conexión
   const [usingSimulationFallback, setUsingSimulationFallback] = useState<boolean>(false);
 
-  // Referencia al input de tipo file oculto
+  // Referencia para disparar el evento de selección del archivo oculto <input type="file" />
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Efecto para cargar los proyectos persistidos del usuario desde Puter KV o LocalStorage
+  // Carga el historial de proyectos guardados en la nube de Puter KV al arrancar el componente
   useEffect(() => {
     const loadProjects = async () => {
       if (user) {
@@ -219,7 +240,12 @@ function Workspace({ user }: { user: any }) {
     loadProjects();
   }, [user]);
 
-  // Sube el plano en 2D al sistema de archivos en la nube de Puter
+  /**
+   * Sube el plano 2D original del usuario a su hosting web estático asignado en Puter.
+   * Si ocurre un fallo de red o WebSocket bloqueado, conmuta al fallback Base64 en memoria.
+   * 
+   * @param file Archivo físico capturado del explorador o dropzone.
+   */
   const handleUpload = async (file: File) => {
     setIsUploading(true);
     setErrorMsg(null);
@@ -240,7 +266,12 @@ function Workspace({ user }: { user: any }) {
     }
   };
 
-  // Genera vista previa local en Base64 en modo offline
+  /**
+   * Genera una previsualización de la imagen cargada de forma puramente local.
+   * Utiliza la API de FileReader para convertir el archivo en Base64 en memoria del cliente.
+   * 
+   * @param file Archivo capturado.
+   */
   const fallbackLocalPreview = (file: File) => {
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -251,7 +282,11 @@ function Workspace({ user }: { user: any }) {
     reader.readAsDataURL(file);
   };
 
-  // Maneja la carga tradicional mediante selector de archivos
+  /**
+   * Maneja la selección tradicional de archivos cuando el usuario utiliza el explorador del sistema.
+   * 
+   * @param e Evento de cambio del input file.
+   */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
@@ -259,10 +294,20 @@ function Workspace({ user }: { user: any }) {
     }
   };
 
-  // Previene el comportamiento nativo de arrastre en el navegador
+  /**
+   * Cancela el comportamiento de arrastre por defecto del navegador web
+   * para posibilitar la captura personalizada del plano 2D.
+   * 
+   * @param e Evento de arrastre sobre el contenedor.
+   */
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => e.preventDefault();
 
-  // Procesa la imagen arrastrada en la zona Drag & Drop
+  /**
+   * Captura el archivo de plano 2D arrastrado y soltado en la Dropzone.
+   * Valida que sea de tipo imagen antes de procesar su subida.
+   * 
+   * @param e Evento drop.
+   */
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const droppedFile = e.dataTransfer.files?.[0];
@@ -271,7 +316,13 @@ function Workspace({ user }: { user: any }) {
     }
   };
 
-  // Dispara el renderizado real por IA (con barra de progreso visual de carga)
+  /**
+   * Desencadena el motor de renderizado por IA de Puter.
+   * Controla las animaciones de la barra de carga por fases y se encarga de:
+   * 1. Invocar la llamada a la API neural de Puter AI de forma asíncrona.
+   * 2. Persistir el render e imagen de origen como un proyecto en la nube (Puter KV) o LocalStorage.
+   * 3. Sincronizar y actualizar el historial inferior de proyectos.
+   */
   const handleGenerate = () => {
     if (!filePreview) {
       setErrorMsg("Sube un plano de planta en 2D antes de generar.");

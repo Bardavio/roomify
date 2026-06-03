@@ -10,6 +10,10 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 
+/**
+ * Define los enlaces de recursos externos para la cabecera HTML general.
+ * Realiza la pre-conexión a Google Fonts e importa la tipografía premium Inter.
+ */
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
@@ -22,7 +26,12 @@ export const links: Route.LinksFunction = () => [
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
 ];
-// Carga la API de Puter.js para autenticación y almacenamiento en la nube
+
+/**
+ * Componente Layout de base para el documento HTML5.
+ * Se encarga de definir la estructura básica (html, head, body) e inyectar
+ * de manera fija el script CDN de Puter.js en el head para toda la app.
+ */
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -47,6 +56,12 @@ import Navbar from "../components/Navbar";
 // Importamos el proveedor global de autenticación con Puter.js
 import { AuthProvider } from "./context/AuthContext";
 
+/**
+ * Componente principal App de la aplicación.
+ * Envuelve todo el árbol en el proveedor global de sesión AuthProvider,
+ * renderiza el Navbar superior e inyecta la salida del router (Outlet)
+ * sobre un fondo gris concreto claro.
+ */
 export default function App() {
   return (
     <AuthProvider>
@@ -61,6 +76,12 @@ export default function App() {
   );
 }
 
+/**
+ * Manejador global de errores (ErrorBoundary).
+ * Captura y renderiza fallos no controlados en tiempo de ejecución
+ * o respuestas HTTP de error (ej: 404), ofreciendo detalles y pila
+ * de llamadas en modo desarrollo para facilitar la depuración.
+ */
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";
   let details = "An unexpected error occurred.";
