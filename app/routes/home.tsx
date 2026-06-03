@@ -16,6 +16,11 @@ const RENDERS_DATABASE: Record<string, string> = {
   "scandinavian_entire_floor_plan": "/test-images/rendered_apartment.png",
   "industrial_entire_floor_plan": "/test-images/rendered_apartment.png",
   "boho_entire_floor_plan": "/test-images/rendered_apartment.png",
+
+  // Variedad de renders de planos en 3D para las demostraciones
+  "rendered_simple_room": "/test-images/rendered_simple_room.png",
+  "rendered_simple_lshape": "/test-images/rendered_simple_lshape.png",
+  "rendered_sketch_layout": "/test-images/rendered_sketch_layout.png",
 };
 
 // Opciones globales de tipo de espacio para el configurador (habitación de apartamento)
@@ -341,8 +346,17 @@ function Workspace({ user }: { user: any }) {
         console.warn("[Workspace] La generación real con Puter AI falló, aplicando simulación local:", e);
         setUsingSimulationFallback(true);
 
-        const renderKey = `${designStyle}_${roomType}`;
-        const renderUrl = RENDERS_DATABASE[renderKey] || RENDERS_DATABASE["modern_entire_floor_plan"];
+        let renderUrl = RENDERS_DATABASE[`${designStyle}_${roomType}`] || RENDERS_DATABASE["modern_entire_floor_plan"];
+
+        // Conmutamos la simulación según el tipo de plano de entrada para tener variedad y correspondencia
+        if (filePreview.includes("simple_room")) {
+          renderUrl = RENDERS_DATABASE["rendered_simple_room"];
+        } else if (filePreview.includes("simple_lshape")) {
+          renderUrl = RENDERS_DATABASE["rendered_simple_lshape"];
+        } else if (filePreview.includes("sketch_layout")) {
+          renderUrl = RENDERS_DATABASE["rendered_sketch_layout"];
+        }
+
         setRenderResult(renderUrl);
 
         // Creamos la estructura del proyecto simulado como fallback
